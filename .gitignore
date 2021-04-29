@@ -1,3 +1,8 @@
+dist/
+build/
+.ropeproject
+.magicindex.json
+src/devmail.egg-info
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
