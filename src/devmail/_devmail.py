@@ -1,5 +1,6 @@
 import requests
 import email
+import json
 
 
 class DevMail:
@@ -8,11 +9,17 @@ class DevMail:
         self.username = None
         self.token = None
         self.raw = None
-        self.mailids = None
-        self.mails = None
-        self.mail = None
+        self.mailids = []
+        self.parser = email.parser.Parser()
 
-    def create(self, force=False):
+    def __repr__(self):
+        return f'DevMail(username={self.username}, mailids={len(self.mailids)})'
+
+    def parse_mail(self, mail_str):
+        mail_object = self.parser.parsestr(mail_str)
+        return dict(mail_object)
+
+    def create(self):
         headers = {
             'accept': 'application/json',
         }
@@ -25,7 +32,6 @@ class DevMail:
             self.response = self.response.json()
             self.username = self.response['result']['name']
             self.token = self.response['result']['token']
-
         return {'username': self.username, 'token': self.token}
 
     def destroy(self):
@@ -63,7 +69,7 @@ class DevMail:
         self.mailids = self.response['result']
         return self.mailids
 
-    def getmails(self, mailids: list = None):
+    def getmails(self, mailids: list=None, raw=False):
         headers = {
             'accept': 'application/json',
             'X-MailboxToken': self.token,
@@ -73,13 +79,16 @@ class DevMail:
         if mailids is None:
             mailids = self.mailids
 
-        data = str(mailids)
+        data = json.dumps(mailids)
 
         self.response = requests.post(
             f'https://www.developermail.com/api/v1/mailbox/{self.username}/messages', headers=headers, data=data)
         self.response = self.response.json()
-        self.mails = self.response['result']
-        return self.mails
+        mails = self.response['result']
+        if not raw:
+            for mail in mails:
+                mail['value'] = self.parse_mail(mail['value'])
+        return mails
 
     def getmail(self, mailid: str, raw=False):
         headers = {
@@ -89,10 +98,11 @@ class DevMail:
         self.response = requests.get(
             f'https://www.developermail.com/api/v1/mailbox/{self.username}/messages/{mailid}', headers=headers)
         self.response = self.response.json()
-        self.mail = self.response['result']
-        if raw is False:
-            self.mail = email.message_from_string(self.mail)
-        return self.mail
+        mail = self.response['result']
+        if not raw:
+            mail = self.parse_mail(mail)
+            # mail = email.message_from_string(mail)
+        return mail
 
     def delmail(self, mailid: str):
         headers = {
@@ -101,5 +111,19 @@ class DevMail:
         }
         self.response = requests.delete(
             f'https://www.developermail.com/api/v1/mailbox/{self.username}/messages/{mailid}', headers=headers)
+        self.response = self.response.json()
+        return self.response
+
+    def sendmail(self, data: dict = None):
+        headers = {
+            'accept': 'application/json',
+            'X-MailboxToken': self.token,
+            'Content-Type': 'application/json',
+        }
+
+        data = json.dumps(data)
+
+        self.response = requests.put(
+            f'https://www.developermail.com/api/v1/mailbox/{self.username}/messages', headers=headers, data=data)
         self.response = self.response.json()
         return self.response
