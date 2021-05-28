@@ -79,6 +79,13 @@ It will return list of `{'key': mail id, 'value': parsed mail content}`. If `mai
 ['637578381749371824']
 ```
 
+### Destroy mailbox
+
+```python
+>>> mailbox.destroy()
+{'success': True, 'errors': None, 'result': True}
+```
+
 TBD:
 
 3. Empty mailbox
