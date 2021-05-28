@@ -1,70 +1,82 @@
 DeveloperMail python wrapper based on official documentation https://www.developermail.com/api/v1/
 
-### Install
+## Install
 
 ```python
 pip install devmail
 ```
 
-### Usage
+## Usage
 
-###### Creating mailbox
+### Create mailbox
 
 ```python
 >>> from devmail import DevMail
 >>> mailbox = DevMail()
 >>> mailbox.create()
-{'username': 'z-werhj4', 'token': 'B1DC9D1D6C9C1519728C4056F545EA0288946D54'}
+{'username': 'z-pypjq7', 'token': 'AD5002F7F660C2D61A91B5F1DCABF0819E2F79D4'}
 ```
 
-###### Create new token
+### Create new token
 
 ```python
 >>> mailbox.newtoken()
-{'username': 'z-werhj4', 'token': 'DC7F2CD7C195E66F637123A34D3D2A57FF0A18A0'}
+{'username': 'z-pypjq7', 'token': 'FA3CEC39B32E03DD6E5011FE4B1A4FCA7EC9C28A'}
 ```
 
-###### Get message ids
+### Send a message
 
-In this example, I send two message to `z-werhj4@developermail.com` from my real email.
+```python
+>>> mail = {'subject': 'Hello!', 'body': 'There!', 'isHtml': False}
+>>> mailbox.sendmail(mail)
+{'success': True, 'errors': None, 'result': True}
+```
+
+### Send another message
+
+```python
+>>> mail = {'subject': 'Hello!', 'body': 'Again!', 'isHtml': False}
+>>> mailbox.sendmail(mail)
+{'success': True, 'errors': None, 'result': True}
+```
+
+### Get message IDs
 
 ```python
 >>> mailbox.getmailids()
-['637553086207559378', '637553086352838482']
+['637578381535439379', '637578381749371824']
 ```
 
-The email id is a timestamp.
+The email id is a unix timestamp.
 
-###### Get messages from list of id
+### Get messages from list of id
 
 ```python
->>> mails = mailbox.getmails(['637553086207559378', '637553086352838482'])
+>>> mails = mailbox.getmails(['637578381535439379', '637578381749371824'], raw=False)
 >>> len(mails)
 2
 >>> mails[0]
-{'key': '637553086207559378', 'value': 'DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.co.id; s=s2048; t=1619711818; bh=ffhpeYB/ObY5N0hGrQtyxG3MKCJQBhB7v8HKMpfmOjU=; h=Date:From:Reply-To:To:Subject:References:From:Subject:Reply-To; b=E2 TRUNCATED}
+{'key': '637578381535439379', 'value': {'MIME-Version': '1.0', 'From': 'z-pypjq7@developermail.com', 'To': 'z-pypjq7@developermail.com', 'Date': '28 May 2021 22:35:53 +0000', 'Subject': 'Hello!', 'Content-Type': 'text/plain; charset=us-ascii', 'Content-Transfer-Encoding': 'quoted-printable'}}
 ```
 
-It will return list of `{'key': mail id, 'value': raw mail content}`. If `mailids`  list is not supplied, it will return all email available after `mailbox.getmailids()`.
+It will return list of `{'key': mail id, 'value': parsed mail content}`. If `mailids` list is not supplied, it will return all emails available after the last call to `mailbox.getmailids()`. This method parses raw email content by default. To disable this behaviour, set `raw=True`.
 
-###### Get a message
+### Get a single message
 
 ```python
->>> mail = mailbox.getmail('637553086207559378', raw=True)
+>>> mail = mailbox.getmail('637578381749371824')
 >>> mail
-'DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.co.id; s=s2048; t=1619711818; bh=ffhpeYB/ObY5N0hGrQtyxG3MKCJQBhB7v8HKMpfmOjU=; h=Date:From:Reply-To:To:Subject:References:From:Subject:Reply-To; b=E20 TRUNCATED'
+{'MIME-Version': '1.0', 'From': 'z-pypjq7@developermail.com', 'To': 'z-pypjq7@developermail.com', 'Date': '28 May 2021 22:36:14 +0000', 'Subject': 'Hello!', 'Content-Type': 'text/plain; charset=us-ascii', 'Content-Transfer-Encoding': 'quoted-printable'}
 ```
 
-Note: `raw` parameter is not useful now. I will improve the email parsing it in the future.
-
-###### Delete a message
+### Delete a message
 
 ```python
->>> mailbox.delmail('637553086207559378')
+>>> mailbox.delmail('637578381535439379')
 {'success': True, 'errors': None, 'result': True}
->>> mailbox.getmail('637553086207559378', raw=True) # return None
+>>> mailbox.getmail('637578381535439379', raw=True) # return None
 >>> mailbox.getmailids()
-['637553086352838482']
+['637578381749371824']
 ```
 
 TBD:
